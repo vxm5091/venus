@@ -14,10 +14,15 @@ const venus = require('../wrapper/wrapper');
 venus();
 
 
+setInterval(() => {
+  axios('http://localhost:8126/chat');
+}, 1000);
+
+
 app.use(express.static(path.join(__dirname, './'))); //serves the index.html
 
 app.get('/chat', (req, res) => {
-  axios('https://curriculum-api.codesmith.io/messagez/')
+  axios('https://curriculum-api.codesmith.io/messages/')
     .then((response) => res.status(200).json(response.data))
     .catch((err) => console.log(`Get error: ${err}`));
 });
