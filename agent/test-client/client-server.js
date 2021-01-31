@@ -14,11 +14,12 @@ const venus = require('../wrapper/wrapper');
 venus();
 
 
+let counter = 1;
 setInterval(() => {
-  axios('http://localhost:8126/chat')
-  .then(axios('http://localhost:8126/chatz').then(res => res))
-  .then((...args) => console.log(''));
-}, 2000);
+  if (counter % 2 === 0) axios('http://localhost:8126/chat')
+  else axios('http://localhost:8126/chatz')
+  counter++;
+}, 1000);
 
 
 app.use(express.static(path.join(__dirname, './'))); //serves the index.html
