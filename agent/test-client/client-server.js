@@ -16,7 +16,8 @@ venus();
 
 setInterval(() => {
   axios('http://localhost:8126/chat')
-  .then(axios('http://localhost:8126/chatz'))
+  .then(axios('http://localhost:8126/chatz').then(res => res))
+  .then((...args) => console.log(''));
 }, 2000);
 
 
