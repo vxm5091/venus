@@ -15,7 +15,8 @@ venus();
 
 
 setInterval(() => {
-  axios('http://localhost:8126/chat');
+  axios('http://localhost:8126/chat')
+  .then(axios('http://localhost:8126/chatz'))
 }, 1000);
 
 
@@ -23,6 +24,12 @@ app.use(express.static(path.join(__dirname, './'))); //serves the index.html
 
 app.get('/chat', (req, res) => {
   axios('https://curriculum-api.codesmith.io/messages/')
+    .then((response) => res.status(200).json(response.data))
+    .catch((err) => console.log(`Get error: ${err}`));
+});
+
+app.get('/chatz', (req, res) => {
+  axios('https://curriculum-api.codesmith.io/messagez/')
     .then((response) => res.status(200).json(response.data))
     .catch((err) => console.log(`Get error: ${err}`));
 });
