@@ -17,7 +17,7 @@ venus();
 setInterval(() => {
   axios('http://localhost:8126/chat')
   .then(axios('http://localhost:8126/chatz'))
-}, 1000);
+}, 2000);
 
 
 app.use(express.static(path.join(__dirname, './'))); //serves the index.html
