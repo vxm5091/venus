@@ -156,6 +156,16 @@ const rtData = data => {
   df['serverError'] = df['serverError'].astype('int32');
   df['noError'] = df['noError'].astype('int32');
 
+  const timestampArr = df['id'].data;
+  const reg = /^\d+/g;
+  const timestampCol = [];
+  timestampArr.forEach(timestamp => {
+    timestampCol.push(Number(timestamp.match(reg)));
+  });
+  df.addColumn({
+    column: 'Timestamp',
+    value: timestampCol,
+  }); 
 
   
   const outputTableByService = rtDataByCategory(df, 'reqHost');

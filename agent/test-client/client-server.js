@@ -7,6 +7,12 @@ const axios = require('axios');
 const express = require('express');
 
 const app = express();
+const bodyParser = require('body-parser')
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json())
+
+
+
 const path = require('path');
 
 
@@ -23,7 +29,10 @@ const messageBody = {
 }
 setInterval(() => {
   if (counter % 2 === 0) axios('http://localhost:8126/chat')
-  // else axios.post('http://localhost:8126/chat', messageBody)
+  else {
+    axios.post('http://localhost:8126/chat', messageBody)
+      .then(() => console.log('POST SUCCESS'));
+  }
   counter++;
 }, 1000);
 
@@ -44,6 +53,7 @@ app.get('/chatz', (req, res) => {
 
 app.post('/chat', (req, res) => {
   const { created_by, message } = req.body;
+  console.log('REQ BODY', req.body)
   axios
     .post('https://curriculum-api.codesmith.io/messages', {
       created_by,

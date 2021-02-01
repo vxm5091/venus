@@ -38,6 +38,22 @@ function rtDataByCategory(df, category) {
   let dfFinal;      
 
   /**
+   * Timestamp is calculated as the minimum time stamp within each category. 
+   */
+  
+  const timestampByCategory = dfGroupedByCategory.col(['Timestamp']).min();
+  timestampByCategory.columns[1] = 'Timestamp_min';
+
+
+  dfFinal = dfd.merge({
+    left: dfNewByCategory,
+    right: timestampByCategory,
+    on: [`${category}`],
+    how: 'left',
+  });
+
+  
+  /**
    * Response time is calculated using a simple average of all values in the same category.
    * Evaluated result is a new DataFrame column, which is then merged to dfFinal
    * Note: danfo.js merge method indexes the data in the 'left' property to values in the 'right' 
@@ -46,7 +62,7 @@ function rtDataByCategory(df, category) {
   const resTimeDFMethod = dfGroupedByCategory.col(['cycleDuration']).mean();
 
   dfFinal = dfd.merge({
-    left: dfNewByCategory,
+    left: dfFinal,
     right: resTimeDFMethod,
     on: [`${category}`],
     how: 'left',
@@ -119,6 +135,7 @@ function rtDataByCategory(df, category) {
       'cycleDuration_mean',
       'Client Error (%)',
       'Server Error (%)',
+      'Timestamp_min',
     ],
   });
   
@@ -146,6 +163,7 @@ function rowToObj(row, service = false) {
   newObj.response_time = Math.round(row[2]);
   newObj.error = Math.round(row[3]);
   newObj.availability = Math.round(100 - row[4]);
+  newObj.timestamp = String(row[5]);
   return newObj;
 }
 
@@ -169,6 +187,7 @@ function aggregateStatsToObj(df) {
   newObj.response_time = Math.round(df.cycleDuration.mean());
   const totalServerErrors = df['serverError'].sum();
   newObj.availability = Math.round(100 - (totalServerErrors / totalRequests) * 100);
+  newObj.timestamp = String(df['Timestamp'].min());
   const aggregateOutputTable = rtDataByCategory(df, 'reqMethod');
   newObj.byMethod = {};
   
