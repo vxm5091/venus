@@ -197,6 +197,7 @@ const rtData = data => {
     outputTableByMethod.data.forEach(row => {
       const method = row[0];
       const methodLvlObj = rowToObj(row);
+      methodLvlObj.service = host;
       // update consolidated object with method-level data
       consolidatedObj.services[hostIndex].byMethod[method] = methodLvlObj;
     });
@@ -204,7 +205,7 @@ const rtData = data => {
   const consolidatedObjStringify = JSON.stringify(consolidatedObj);
   const dependencyObjStringify = JSON.stringify(dependencyObj);
   // return both stringified objects as array elements
-  console.log(consolidatedObj);
+  console.log(consolidatedObj.services[0].byMethod);
   console.log(dependencyObj);
   return [consolidatedObjStringify, dependencyObjStringify];
 };

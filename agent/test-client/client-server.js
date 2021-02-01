@@ -15,9 +15,13 @@ venus();
 
 
 let counter = 1;
+const messageBody = {
+  created_by: 'codingnewb',
+  message: 'test123',
+}
 setInterval(() => {
   if (counter % 2 === 0) axios('http://localhost:8126/chat')
-  else axios('http://localhost:8126/chatz')
+  else axios.post('http://localhost:8126/chat', messageBody)
   counter++;
 }, 1000);
 
