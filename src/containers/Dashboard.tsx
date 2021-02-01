@@ -16,6 +16,8 @@ import Select from "antd/es/select";
 import { globalContext } from "../contexts/globalContext"
 import { dynamicContext } from "../contexts/dynamicContext";
 import Title from "antd/es/typography/Title";
+import authApi from './authApi';
+import axios from 'axios';
 
 const variable: string = "oliver";
 
@@ -40,7 +42,7 @@ function Dashboard(): JSX.Element {
       setServices(newData.services);
       console.log(newData.aggregate);
       console.log(newData.services);
-    });
+      })
 
     setServices([
       {

@@ -7,21 +7,45 @@ import Input from 'antd/es/input';
 import Button from 'antd/es/button';
 import Card from 'antd/es/card';
 import Typography from "antd/es/typography";
+import authApi from './authApi';
 const { Title } = Typography;
 
 
-function SignIn():JSX.Element {
-  console.log(data)
-  const { verification, setVerification, setServerAddress, } = useContext(globalContext)
-  const onFinish = (values: any) => {
 
+
+
+
+function SignIn():JSX.Element {
+  console.log('DATA', data)
+  // TODO deconstruct secret from login
+  const { verification, setVerification, setServerAddress, } = useContext(globalContext)
+  
+  
+  
+  const onFinish = async (values: any) => {
     // create get request here to ratify the tokenization process. 
     // currently compares to a local json file. 
     // commmit token to local state.
-    if(data[values.serverIP]){
+    
+    // deconstruct values object (serverIP, secret)
+    const { serverIP, secret } = values;
+    
+    // invoke authApi.login with serverIP and secret in the body object
+    const res = await authApi.login({ serverIP, secret });
+    console.log('CLIENT RESPONSE', res);
+    if (res.status === 200) {
+      const { accessToken, refreshToken } = res.data;
+      console.log('RES DATA', res.data)
+      console.log('ACCESS TOKEN', accessToken)
+      console.log('REFRESH TOKEN', refreshToken)
+      localStorage.setItem('accessToken', accessToken)
+      localStorage.setItem('refreshToken', refreshToken)
+      // if(data[values.serverIP]){
       setServerAddress(values.serverIP)
       setVerification(true)
-    } 
+    }
+    // } 
+    
   }
   const onFinishFailed = (errorInfo: any) => {
     console.log('Failed:', errorInfo);
@@ -47,6 +71,7 @@ function SignIn():JSX.Element {
           {...layout}
           name="Login"
           initialValues={{ remember: true }}
+          // TODO onsubmit handler
           onFinish={onFinish}
           onFinishFailed={onFinishFailed}>
           <Form.Item

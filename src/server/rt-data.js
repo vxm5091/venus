@@ -150,6 +150,7 @@ const rtData = data => {
    * convert array of objects to data frame and cast the numeric variables (currently in string format) to integers
    */
   const df = new dfd.DataFrame(data);
+  // df['unixTime'] = df['unixTime'].astype('int32');
   df['cycleDuration'] = df['cycleDuration'].astype('int32');
   df['resStatusCode'] = df['resStatusCode'].astype('int32');
   df['clientError'] = df['clientError'].astype('int32');
@@ -196,7 +197,7 @@ const rtData = data => {
     // iterate through each request method in order to fill in method-level data
     outputTableByMethod.data.forEach(row => {
       const method = row[0];
-      const methodLvlObj = rowToObj(row);
+      const methodLvlObj = rowToObj(row, host);
       // update consolidated object with method-level data
       consolidatedObj.services[hostIndex].byMethod[method] = methodLvlObj;
     });

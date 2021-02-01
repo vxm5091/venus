@@ -20,6 +20,8 @@ import Menu from "antd/es/menu";
 import Layout from "antd/es/layout";
 import Modal from "antd/es/modal";
 import Button from "antd/es/button";
+import authApi from './authApi';
+import axios from 'axios';
 const { Title } = Typography;
 const { Footer, Sider, Content } = Layout;
 const { SubMenu } = Menu;
@@ -35,7 +37,11 @@ function MainDisplay(): JSX.Element {
   };
 
   const handleSignout = () => {
-    setIsModalVisible(false);
+    // TODO remove tokens from localStorage
+    localStorage.removeItem('accessToken')
+    localStorage.removeItem('refreshToken')
+    // await authApi.signout();
+    setIsModalVisible(false)
     setVerification(false)
   };
 
@@ -47,7 +53,7 @@ function MainDisplay(): JSX.Element {
 
   const large: any = "large";
 
-  if (verification) {
+  if (!verification) {
     return <SignIn />;
   } else {
     return (
