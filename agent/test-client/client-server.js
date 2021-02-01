@@ -9,6 +9,8 @@ const express = require('express');
 const app = express();
 const path = require('path');
 
+
+
 /** VENUS AGENT */
 const venus = require('../wrapper/wrapper');
 venus();
@@ -21,7 +23,7 @@ const messageBody = {
 }
 setInterval(() => {
   if (counter % 2 === 0) axios('http://localhost:8126/chat')
-  else axios.post('http://localhost:8126/chat', messageBody)
+  // else axios.post('http://localhost:8126/chat', messageBody)
   counter++;
 }, 1000);
 
