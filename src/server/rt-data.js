@@ -156,7 +156,7 @@ const rtData = data => {
   df['clientError'] = df['clientError'].astype('int32');
   df['serverError'] = df['serverError'].astype('int32');
   df['noError'] = df['noError'].astype('int32');
-
+  
 
   
   const outputTableByService = rtDataByCategory(df, 'reqHost');

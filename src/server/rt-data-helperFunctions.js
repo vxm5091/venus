@@ -117,7 +117,7 @@ function rtDataByCategory(df, category) {
    */
 
     // dfGroupedByCategory.col['timestamp']
-   //  const timestampMethod = dfGroupedByCategory.col['timestamp'].min();
+    const timestampMethod = dfGroupedByCategory.col['timestamp'].min();
 
 
   /* Danfo.js .loc() method returns a DataFrame with a subset of columns including solely the calculated metrics */
@@ -128,7 +128,7 @@ function rtDataByCategory(df, category) {
       'cycleDuration_mean',
       'Client Error (%)',
       'Server Error (%)',
-      // 'id',
+      'id',
     ],
   });
   
@@ -181,8 +181,8 @@ function aggregateStatsToObj(df) {
   newObj.response_time = Math.round(df.cycleDuration.mean());
   const totalServerErrors = df['serverError'].sum();
   newObj.availability = Math.round(100 - (totalServerErrors / totalRequests) * 100);
-  console.log('TIMESTAMP', df['id']);
-  // newObj.timestamp = df['']
+  // console.log('TIMESTAMP', df['id']);
+  newObj.timestamp = df['id']
   const aggregateOutputTable = rtDataByCategory(df, 'reqMethod');
   
   newObj.byMethod = {};
