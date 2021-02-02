@@ -28,21 +28,40 @@ function Dashboard(): JSX.Element {
   useEffect(() => {
     setFilter(filter)
     console.log(serverAddress)
-    const socket:any = io(serverAddress + ':8080', {
-      transports: ["websocket"],
+    const accessToken = localStorage.getItem('accessToken');
+    // FIXME revert to original
+    // const socket:any = io(serverAddress + ':8080', {
+    //   transports: ["websocket"],
+    // });
+    const socket:any = io('http://localhost:9999');
+    socket.on('connect', () => {
+      query: {accessToken}
     });
-    socket.on("connection", () => {
-      console.log(socket.id);
-    });
-    socket.on("real-time-object", (output: any) => {
-      console.log("new update");
-      console.log(output)
-      const newData = JSON.parse(output[0]);
-      setAggregate(newData.aggregate);
-      setServices(newData.services);
-      console.log(newData.aggregate);
-      console.log(newData.services, 'services');
-    });
+    socket
+        .emit('authenticate', {
+          token: accessToken,
+        })
+        .on('authenticated', () => {
+        console.log(`DEKSTOP IS CONNECTED TO SOCKET!`)
+        })
+        .on('unathorized', msg => {
+          console.log(`unauthorized: ${JSON.stringify(msg.data)}`);
+          throw new Error(msg.data.type);
+        })
+        .on("real-time-object", (output: any) => {
+          console.log("new update");
+          console.log(output)
+          const newData = JSON.parse(output[0]);
+          setAggregate(newData.aggregate);
+          setServices(newData.services);
+          console.log(newData.aggregate);
+          console.log(newData.services, 'services');
+        });
+      // });
+
+    // socket.on("connection", () => {
+    //   console.log(socket.id);
+    // });
     // setServices([
     //   {
     //     service: "a",

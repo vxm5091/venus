@@ -15,7 +15,7 @@ const { Title } = Typography;
 
 
 function SignIn():JSX.Element {
-  console.log('DATA', data);
+  // console.log('DATA', data);
   // TODO deconstruct secret from login
   const { verification, setVerification, setServerAddress, } = useContext(globalContext)
   

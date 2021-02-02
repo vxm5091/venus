@@ -4,7 +4,8 @@ const express = require('express');
 
 
 const auth = express();
-const jwt = require('jsonwebtoken');
+const server = require('http').createServer(auth);
+
 // TODO figure out if we really need CORS
 
 const cors = require('cors');
@@ -13,6 +14,14 @@ const bodyParser = require('body-parser');
 
 auth.use(bodyParser.json());
 auth.use(bodyParser.urlencoded({ extended: true }));
+
+
+
+// const socketioJwt = require('socketio-jwt');
+
+
+
+
 
 
 
@@ -25,7 +34,7 @@ const access_token_lifetime = 5;
 // jwt REFRESH token lifetime (in HOURS)
 const refresh_token_lifetime = 24;
 
-auth.listen(AUTH_PORT, () => {
+server.listen(AUTH_PORT, () => {
   console.log(`Auth server started on port ${AUTH_PORT}`);
 });
 
@@ -36,13 +45,36 @@ let REFRESH_SECRET='g#RD4dXaQH54'
 let REFRESH_TOKEN_STORED;
 
 
+const io = require('socket.io')(server);
+const jwt = require('jsonwebtoken');
+io.use(function (socket, next) {
+    console.log('handshake', socket.handshake);
+    if (socket.handshake.query && socket.handshake.query.token) {
+      console.log('SUCCESSFUL HANDSHAKE')
+      jwt.verify(socket.handshake.query.token, ACCESS_SECRET, (err, decoded) => {
+        if (err) return next(new Error('Token authentication error!'))
+        socket.decoded = decoded;
+        next();
+      });
+    } else {
+      next(new Error('Token authentication error!'))
+    }
+})
+.on('connection', socket => {
+    console.log('SOCKET CONNECTED', socket)
+    socket.on('message', (msg) => {
+      io.emit('message', msg)
+    })
+});
+
 
 /**
  * global middleware to check if incoming request is authorized
  */
 // TODO this should be a global middleware handler on the main server file
-auth.get('*', (req, res, next) => {
+auth.use('/check', (req, res, next) => {
   //  get the token stored in the customer header called 'x-auth-token'
+  console.log(req);
   const token = req.get('x-auth-token');
   console.log('CHECK TOKEN', token)
   // send error message if no token is found

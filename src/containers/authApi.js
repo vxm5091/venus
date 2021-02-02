@@ -49,7 +49,8 @@ axios.interceptors.response.use(res => res, err => {
           return axios(reqOriginal);
         }
         // Promise.reject('Token refresh error. Invalid status code')
-      });
+      })
+      .catch(err => console.error(err));
   }
   return Promise.reject(err);
 });
