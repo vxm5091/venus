@@ -13,7 +13,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 
 
-const AUTH_PORT = 9999;
+const AUTH_PORT = 8080;
 
 // jwt ACCESS token lifetime (in MINUTES)
 const access_token_lifetime = 5;

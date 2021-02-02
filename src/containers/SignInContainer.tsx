@@ -30,7 +30,6 @@ function SignIn():JSX.Element {
     
     // deconstruct values object (serverIP, secret)
     const { serverAddress, secret } = values;
-    
     // invoke authApi.login with serverIP and secret in the body object
 
     console.log(`${serverAddress}/login`)

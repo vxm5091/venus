@@ -36,21 +36,22 @@ function Dashboard(): JSX.Element {
     
     // const socket:any = io('http://localhost:9999', {
       const socket:any = io(serverAddress + ':8080', {
-      query: { accessToken }
+      query: { accessToken },
+      transports: ['websocket'],
     });
-    socket.on('connect', (data) => {
+    socket.on('connection', (data) => {
       console.log(data)
       console.log(`DEKSTOP IS CONNECTED TO SOCKET!`)
     })
-    socket.on('authenticated', (accessToken) => {
-      console.log('GOT THE TOKEN BACK', accessToken);
-      localStorage.setItem('accessToken', accessToken);
-    });
-      // .emit('authenticate', { accessToken })
-    socket.on('unathorized', msg => {
-      console.log(`unauthorized: ${JSON.stringify(msg.data)}`);
-      throw new Error(msg.data.type);
-    })
+    // socket.on('authenticated', accessToken => {
+    //   console.log('GOT THE TOKEN BACK', accessToken);
+    //   localStorage.setItem('accessToken', accessToken);
+    // });
+    //   // .emit('authenticate', { accessToken })
+    // socket.on('unathorized', msg => {
+    //   console.log(`unauthorized: ${JSON.stringify(msg.data)}`);
+    //   throw new Error(msg.data.type);
+    // })
     socket.on("real-time-object", (output: any) => {
           console.log("new update");
           console.log(output)

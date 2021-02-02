@@ -19,7 +19,7 @@ const axios = require('axios');
  * Object will contain functions related to auth API calls from the desktop app
  */
 const authApi = {};
-authApi.login = body => axios.post(`${body.serverAddress}/login`, body);
+authApi.login = body => axios.post(`${body.serverAddress}:3000/login`, body);
 authApi.signout = () => axios.get(`${body.serverAddress}/signout`);
 authApi.refreshToken = body => axios.post(`${body.serverAddress}/refresh_token`, body);
 
