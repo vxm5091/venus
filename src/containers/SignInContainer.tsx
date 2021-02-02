@@ -7,7 +7,9 @@ import Button from 'antd/es/button';
 import Card from 'antd/es/card';
 import Typography from "antd/es/typography";
 import authApi from './authApi';
+import axios from "axios";
 const { Title } = Typography;
+
 
 
 
@@ -27,22 +29,39 @@ function SignIn():JSX.Element {
     // commmit token to local state.
     
     // deconstruct values object (serverIP, secret)
-    const { serverIP, secret } = values;
+    const { serverAddress, secret } = values;
     
     // invoke authApi.login with serverIP and secret in the body object
-    const res = await authApi.login({ serverIP, secret });
-    console.log('CLIENT RESPONSE', res);
-    if (res.status === 200) {
-      const { accessToken, refreshToken } = res.data;
-      console.log('RES DATA', res.data)
-      console.log('ACCESS TOKEN', accessToken)
-      console.log('REFRESH TOKEN', refreshToken)
-      localStorage.setItem('accessToken', accessToken)
-      localStorage.setItem('refreshToken', refreshToken)
-      // if(data[values.serverIP]){
-      setServerAddress(values.serverIP)
-      setVerification(true)
-    }
+
+    console.log(`${serverAddress}/login`)
+    const res = await authApi.login({ serverAddress, secret });
+    // const reqObj: any = {
+    //   method: 'POST',
+    //   body: {
+    //     serverIP, secret
+    //   }
+    // }
+    // fetch(`${serverIP}/login`, reqObj)
+    //   .then(data => data.json())
+    //   .then(res => {
+        
+      if (res.status === 200) {
+          const { accessToken, refreshToken } = res.data;
+          // console.log('RES DATA', res.data)
+          // console.log('ACCESS TOKEN', accessToken)
+          // console.log('REFRESH TOKEN', refreshToken)
+          localStorage.setItem('accessToken', accessToken)
+          localStorage.setItem('refreshToken', refreshToken)
+          // if(data[values.serverIP]){
+          setServerAddress(values.serverAddress)
+          setVerification(true)
+        console.log('login success')
+      }
+    // })
+      // .catch(err => console.error('login ERROR'))
+    // console.log('CLIENT RESPONSE', res);
+    
+    // }
     // } 
     
   }
@@ -74,7 +93,7 @@ function SignIn():JSX.Element {
           onFinishFailed={onFinishFailed}>
           <Form.Item
             label="Server Address"
-            name="serverIP"
+            name="serverAddress"
             rules={[{ required: true, message: 'Please enter valid Server Address.' }]}
           >
             <Input placeholder="Enter Server Address"/>

@@ -3,30 +3,17 @@ require('dotenv').config();
 const express = require('express');
 
 
-const auth = express();
-const server = require('http').createServer(auth);
-
-// TODO figure out if we really need CORS
-
-const cors = require('cors');
+const app = express();
+const server = require('http').createServer(app);
 
 const bodyParser = require('body-parser');
 
-auth.use(bodyParser.json());
-auth.use(bodyParser.urlencoded({ extended: true }));
-
-
-
-// const socketioJwt = require('socketio-jwt');
-
-
-
-
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 
 
 const AUTH_PORT = 9999;
-// process.env.AUTH_PORT = AUTH_PORT;
 
 // jwt ACCESS token lifetime (in MINUTES)
 const access_token_lifetime = 5;
@@ -38,7 +25,7 @@ server.listen(AUTH_PORT, () => {
   console.log(`Auth server started on port ${AUTH_PORT}`);
 });
 
-
+// FIXME 
 let SERVER_IP='testserver'
 let ACCESS_SECRET='Wa29*#B6H^n'
 let REFRESH_SECRET='g#RD4dXaQH54'
@@ -47,61 +34,38 @@ let REFRESH_TOKEN_STORED;
 
 const io = require('socket.io')(server);
 const jwt = require('jsonwebtoken');
+
+/**
+ * socket.io handler 
+ * at this point, a jwt access token has already been generated and stored in localStorage
+ * the handler verifies that the accessToken has been provided and subsequently verifies it 
+ */
 io.use(function (socket, next) {
-    console.log('handshake', socket.handshake);
-    if (socket.handshake.query && socket.handshake.query.token) {
+  console.log(socket);
+  if (socket.handshake.query && socket.handshake.query.accessToken) {
       console.log('SUCCESSFUL HANDSHAKE')
-      jwt.verify(socket.handshake.query.token, ACCESS_SECRET, (err, decoded) => {
+      jwt.verify(socket.handshake.query.accessToken, ACCESS_SECRET, (err, decoded) => {
         if (err) return next(new Error('Token authentication error!'))
+        socket.emit('')
         socket.decoded = decoded;
-        next();
+        return next();
       });
     } else {
-      next(new Error('Token authentication error!'))
+      return next(new Error('Token authentication error!'))
     }
 })
 .on('connection', socket => {
-    console.log('SOCKET CONNECTED', socket)
-    socket.on('message', (msg) => {
-      io.emit('message', msg)
-    })
+  console.log('SERVER SOCKET CONNECTED')
 });
 
 
-/**
- * global middleware to check if incoming request is authorized
- */
-// TODO this should be a global middleware handler on the main server file
-auth.use('/check', (req, res, next) => {
-  //  get the token stored in the customer header called 'x-auth-token'
-  console.log(req);
-  const token = req.get('x-auth-token');
-  console.log('CHECK TOKEN', token)
-  // send error message if no token is found
-  if (!token) {
-    return res.sendStatus(401).json({
-      error: 'Access denied! Missing token...',
-    });
-  }
-  try {
-    /**
-     * if incoming request has a valid token, we extract the payload from
-     * the token and attach it to the request object
-     */
-    const payload = jwt.verify(token, ACCESS_SECRET);
-    console.log('CHECK PAYLOAD', payload)
-    req.serverIP = payload.serverIP;
-    return next();
-  } catch (error) {
-    return res.status(401).json({ error });
-  }
-});
+
 
 /** handler for login request
  * will check against serverIP and secret environment variables
  * if it's a match, will generate an access token and a refresh token
  */
-auth.post('/login', (req, res) => {
+app.post('/login', (req, res) => {
   console.log('LOGIN BODY', req.body);
   console.log('ENV DATA', {
     serverIP: SERVER_IP,
@@ -120,7 +84,10 @@ auth.post('/login', (req, res) => {
       },
       secret,
       {
+        // FIXME change back to original lifetime
         expiresIn: access_token_lifetime * 60,
+        // expiresIn: 10,
+
       },
     );
 
@@ -149,7 +116,7 @@ auth.post('/login', (req, res) => {
 });
 
 // refresh token handler
-auth.post('/refresh_token', (req, res) => {
+app.post('/refresh_token', (req, res) => {
   const { refreshToken } = req.body;
   // check if refreshToken was included in body
   if (!refreshToken) {
@@ -181,7 +148,9 @@ auth.post('/refresh_token', (req, res) => {
   return res.json({ accessToken });
 });
 
-auth.get('/signout', (req, res) => {
+
+// FIXME incorporate into React signout functionality
+app.get('/signout', (req, res) => {
   try {
     // delete the refresh token saved in local cache
     // const { refreshToken } = req.body;

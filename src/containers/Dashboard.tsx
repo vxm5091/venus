@@ -33,22 +33,25 @@ function Dashboard(): JSX.Element {
     // const socket:any = io(serverAddress + ':8080', {
     //   transports: ["websocket"],
     // });
-    const socket:any = io('http://localhost:9999');
-    socket.on('connect', () => {
-      query: {accessToken}
+    
+    // const socket:any = io('http://localhost:9999', {
+      const socket:any = io(serverAddress + ':8080', {
+      query: { accessToken }
     });
-    socket
-        .emit('authenticate', {
-          token: accessToken,
-        })
-        .on('authenticated', () => {
-        console.log(`DEKSTOP IS CONNECTED TO SOCKET!`)
-        })
-        .on('unathorized', msg => {
-          console.log(`unauthorized: ${JSON.stringify(msg.data)}`);
-          throw new Error(msg.data.type);
-        })
-        .on("real-time-object", (output: any) => {
+    socket.on('connect', (data) => {
+      console.log(data)
+      console.log(`DEKSTOP IS CONNECTED TO SOCKET!`)
+    })
+    socket.on('authenticated', (accessToken) => {
+      console.log('GOT THE TOKEN BACK', accessToken);
+      localStorage.setItem('accessToken', accessToken);
+    });
+      // .emit('authenticate', { accessToken })
+    socket.on('unathorized', msg => {
+      console.log(`unauthorized: ${JSON.stringify(msg.data)}`);
+      throw new Error(msg.data.type);
+    })
+    socket.on("real-time-object", (output: any) => {
           console.log("new update");
           console.log(output)
           const newData = JSON.parse(output[0]);
@@ -56,8 +59,8 @@ function Dashboard(): JSX.Element {
           setServices(newData.services);
           console.log(newData.aggregate);
           console.log(newData.services, 'services');
-        });
-      // });
+      });
+    // });
 
     // socket.on("connection", () => {
     //   console.log(socket.id);

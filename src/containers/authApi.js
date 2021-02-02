@@ -1,27 +1,36 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-underscore-dangle */
+
+// import { SignIn } from './SignInContainer';
+
+
 /* eslint-disable no-param-reassign */
 const axios = require('axios');
 
-const AUTH_URL = 'http://localhost:9999';
+
+
+// const AUTH_URL = 'http://localhost:9999';
+// const AUTH_URL = 'http://ec2-3-15-29-241.us-east-2.compute.amazonaws.com';
+// const AUTH_URL = 'https://ec2-3-15-29-241.us-east-2.compute.amazonaws.com';
+// const AUTH_URL = 
 
 
 /**
  * Object will contain functions related to auth API calls from the desktop app
  */
 const authApi = {};
-authApi.login = body => axios.post(`${AUTH_URL}/login`, body);
-authApi.refreshToken = body => axios.post(`${AUTH_URL}/refresh_token`, body);
-authApi.signout = () => axios.get(`${AUTH_URL}/signout`);
+authApi.login = body => axios.post(`${body.serverAddress}/login`, body);
+authApi.signout = () => axios.get(`${body.serverAddress}/signout`);
+authApi.refreshToken = body => axios.post(`${body.serverAddress}/refresh_token`, body);
 
 /**
  * intercept all axios requests and append customer 'x-auth-token' header if
  * accessToken is available in localStorage
  */
-axios.interceptors.request.use(config => {
+axios.interceptors.request.use(req => {
   const accessToken = localStorage.getItem('accessToken');
-  if (accessToken) config.headers['x-auth-token'] = accessToken;
-  return config;
+  if (accessToken) req.headers['x-auth-token'] = accessToken;
+  return req;
 });
 
 /**
@@ -38,24 +47,23 @@ axios.interceptors.response.use(res => res, err => {
    */
   if (refreshToken && err.response.status === 401 && !reqOriginal._retry) {
     reqOriginal._retry = true;
-    return axios.post(`${AUTH_URL}/refresh_token`, {
-      refreshToken,
-    })
+    return authApi.refreshToken({ refreshToken })
+    // return axios.post(`${AUTH_URL}/refresh_token`, {
+    //   refreshToken,
+    // })
       .then(res => {
         if (res.status === 200) {
           localStorage.setItem('accessToken', res.data.accessToken);
         // FIXME delete console.log
-          console.log('Access token refresh successfully!');
+          console.log('Access token refreshed successfully!');
           return axios(reqOriginal);
         }
-        // Promise.reject('Token refresh error. Invalid status code')
       })
-      .catch(err => console.error(err));
+      .catch(error => console.error(error));
   }
   return Promise.reject(err);
 });
 
 
-
-
 export default authApi;
+ 
