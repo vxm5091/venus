@@ -158,6 +158,9 @@ function override(module) {
     const endpoints = config.get("venus.endpointsExcluded");
     if (endpoints[reqUrl]) return false;
     const localReg = /localhost/gi;
+    // FIXME take out timestamp 
+    const now = new Date();
+    fullLog.timestamp = `${now.getDate()} / ${now.getMonth() + 1} / ${now.getFullYear()} @ ${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}:${now.getMilliseconds()}`
     fullLog.reqHost = req.host || req.hostname;
     if (localReg.test(fullLog.reqHost)) return false;
     fullLog.reqMethod = req.method || 'GET';
