@@ -26,9 +26,9 @@ function SignIn():JSX.Element {
     const { serverAddress, secret } = values;
     const res = await authApi.login({ serverAddress, secret });
     if (res.status === 200) {
-      const { accessToken, refreshToken } = res.data;
+      console.log(res.data)
+      const accessToken = res.data;
       localStorage.setItem('accessToken', accessToken)
-      localStorage.setItem('refreshToken', refreshToken)
       setServerAddress(values.serverAddress)
       setVerification(true)
     }
@@ -61,7 +61,7 @@ function SignIn():JSX.Element {
           onFinishFailed={onFinishFailed}>
           <Form.Item
             label="Server Address"
-            name="serverIP"
+            name="serverAddress"
             rules={[{ required: true, message: 'Please enter valid Server Address.' }]}
           >
             <Input placeholder="Enter Server Address"/>

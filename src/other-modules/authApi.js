@@ -5,7 +5,11 @@ const axios = require('axios');
  */
 const authApi = {};
 authApi.login = body => axios.post(`${body.serverAddress}:3000/login`, body);
-authApi.signout = () => axios.get(`${body.serverAddress}/signout`);
+
+
+
+// FIXME come back to this
+authApi.signout = (body) => axios.get(`${body.serverAddress}/signout`);
 
 /**
  * Intercept all axios requests and append custom 'x-auth-token' header 
