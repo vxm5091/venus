@@ -32,6 +32,8 @@ function SignIn():JSX.Element {
       setServerAddress(values.serverAddress)
       setVerification(true)
     }
+    await authApi.historical();
+    console.log('Historical request done');
   }
   
   const onFinishFailed = (errorInfo: any) => {

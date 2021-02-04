@@ -6,6 +6,10 @@ const axios = require('axios');
 const authApi = {};
 authApi.login = body => axios.post(`${body.serverAddress}:3000/login`, body);
 
+authApi.historical = body => axios(`${body.serverAddress}:3000/getHistorical`)
+  .then(res => console.log('SERVER TOKEN SUCCESS', res.data))
+  .catch(err => console.error(err));
+
 
 
 // FIXME come back to this
