@@ -155,14 +155,15 @@ function override(module) {
     /**
      * endpoints to be EXCLUDED based on configuration file, otherwise all are included by default
      */
-    const endpoints = config.get("venus.endpointsExcluded");
-    if (endpoints[reqUrl]) return false;
-    const localReg = /localhost/gi;
-    // FIXME take out timestamp 
-    const now = new Date();
-    fullLog.timestamp = `${now.getDate()} / ${now.getMonth() + 1} / ${now.getFullYear()} @ ${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}:${now.getMilliseconds()}`
     fullLog.reqHost = req.host || req.hostname;
-    if (localReg.test(fullLog.reqHost)) return false;
+    const endpoints = config.get("venus.endpointsExcluded");
+    // FIXME take out timestamp 
+    // console.log('ENDPOINT CONFIG', endpoints)
+    // console.log('LOG REQ HOST', endpoints[fullLog.reqHost])
+    if (endpoints[fullLog.reqHost] || endpoints[reqUrl]) {
+      endpointMatch = false;
+      return false;
+    }
     fullLog.reqMethod = req.method || 'GET';
     fullLog.reqPath = req.pathname || req.path || "/";
     fullLog.reqUrl = reqUrl;

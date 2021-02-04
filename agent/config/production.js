@@ -1,10 +1,10 @@
 module.exports = {
   venus: {
     /**
-       * OPTIONAL: add any endpoints below with the value 'true' to EXCLUDE from the analysis
+       * OPTIONAL: add any endpoint HOSTS below with the value 'true' to EXCLUDE from the analysis
        */
     endpointsExcluded: {
-      'https://curriculum-api.codesmith.io/messages': false,
+      'localhost': true,
     },
   },
   redisConnect: {

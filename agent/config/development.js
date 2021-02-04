@@ -5,6 +5,7 @@ module.exports = {
        */
     endpointsExcluded: {
       'localhost': true,
+
     },
   },
   redisConnect: {

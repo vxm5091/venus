@@ -17,6 +17,23 @@ const path = require('path');
 const venus = require('../wrapper/wrapper');
 venus();
 
+
+// const moesif = require("moesif-nodejs");
+// const { nextTick } = require("process");
+// // // set moesif options (only required field is applicationId)
+// const moesifOpts = {
+//   applicationId:
+//     "eyJhcHAiOiIxOTg6ODc3IiwidmVyIjoiMi4wIiwib3JnIjoiODg6MTQxMSIsImlhdCI6MTYxMjEzNzYwMH0.gPtOKSAzXjY0f73eIx0e7sQqqWSdTcEvN3loKk6zF08",
+//   logBody: true,
+//   identifyUser: (req, res) => (req.user ? req.user.id : undefined),
+// };
+// // initialize middleware object with options
+// const moesifMware = moesif(moesifOpts);
+
+// moesifMware.startCaptureOutgoing();
+// app.use(moesifMware);
+
+
 const apiDB = {
   1: 'chat',
   2: 'starwars',
@@ -57,7 +74,11 @@ setInterval(() => {
 app.get('/chat', (req, res) => {
   axios('https://curriculum-api.codesmith.io/messages/')
     .then(response => res.status(200).json(response.data))
-    .catch(err => console.log(`Get error: ${err}`));
+    .catch(err => {
+      console.error(`EXTERNAL ERROR ${err}`);
+      return res.sendStatus(400);
+    });
+
 });
 
 app.post('/chat', (req, res) => {
