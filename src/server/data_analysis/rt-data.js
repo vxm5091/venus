@@ -166,8 +166,18 @@ const rtData = data => {
   df['serverError'] = df['serverError'].astype('int32');
   df['noError'] = df['noError'].astype('int32');
 
+  df.print();
+  
+  df.sort_values({
+    by: 'reqHost',
+    inplace: true,
+  });
+
+  df.print();
 
   const outputTableByService = rtDataByCategory(df, 'reqHost');
+
+
   
   /**
    * Each row in the outputTable includes consolidated metrics by service.
@@ -215,4 +225,5 @@ const rtData = data => {
   return [consolidatedObj, dependencyObj];
 };
 
-exports.rtData = rtData;
+// exports.rtData = rtData;
+rtData(responseData);
