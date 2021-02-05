@@ -7,26 +7,27 @@ import React, { useContext } from 'react'
 import Select from 'antd/es/select';
 import { dynamicContext } from '../contexts/dynamicContext';
 
-const options: any[] = [
-  'ALL METHODS','GET', 'POST', 'PATCH', 'DELETE', 
-];
-const dropDownOptions: any[] =[];
-for (let i = 0; i < options.length; i++){
-  dropDownOptions.push(
-    <Select.Option value={options[i]} key={i}>{options[i]}</Select.Option>
-  )
-}
-
 function FormDropDown (props:any): JSX.Element{
-
+  let methods: string[] = Object.keys(props.record.byMethod)
+    const dropDownOptions: any[] =[<Select.Option value={'ALL METHODS'} key={10000}>{'ALL METHODS'}</Select.Option>];
+    for (let i = 0; i < methods.length; i++){
+    dropDownOptions.push(
+      <Select.Option value={methods[i]} key={i}>{methods[i]}</Select.Option>
+    )
+  }
   const { filter, setFilter } = useContext(dynamicContext)
   
 	function onChange(value:string ) {
-    if (value === 'ALL METHODS' && filter[props.record.service]){
+    console.log(filter, 'before change')
+    if (filter[props.record.service]){
+      // if ()
+      console.log(props.record.service)
       delete filter[props.record.service]
+      filter[props.record.service] = value
       setFilter(filter)
-      console.log(filter)
+      console.log(filter, 'in if')
     } else {
+    console.log(filter, 'in else')
     filter[props.record.service] = value
     setFilter(filter)
     console.log(filter)
@@ -38,12 +39,12 @@ function FormDropDown (props:any): JSX.Element{
 	}
 
 	function onFocus() {
-  	console.log('focus');
+    console.log('focus');
 	}
-
-	function onSearch(val:any) {
-		console.log('search:', val);
-	}
+  
+    function onSearch(val:any) {
+      console.log('search:', val);
+}
 
   return (
   <Select

@@ -1,14 +1,22 @@
-
-import React, { useState } from "react";
+/**
+ * @name DependencyTree
+ * @desc Visual dependency tree that renders when Depenedency Graph tab is selected. Complete display of interconnectivity of application and
+ * its endpoints. Child component of DependencyGraphContainer.
+ * 
+ */
+//import of files and dependencies for dependency graph to properly render
+import React, { useState, useContext, useEffect } from "react";
 import { Group } from "@visx/group";
 import { hierarchy, Tree } from "@visx/hierarchy";
 import { LinearGradient } from "@visx/gradient";
 import { pointRadial } from "d3-shape";
-import { AggregateStats } from '../components/AggregateStats';
-import { changeChildArr, changeData, treeData} from './DataFuncDepGraph'
-import { Select } from "antd";
+import { treeData } from './DataFuncDepGraph'
+import Select from "antd/es/select";
+import { dynamicContext } from '../contexts/dynamicContext';
+import { globalContext } from "../contexts/globalContext"
+import { io } from "socket.io-client";
+const { Option } = Select;
 
-// import useForceUpdate from "./useForceUpdate";
 import {
   LinkHorizontal,
   LinkVertical,
@@ -24,9 +32,9 @@ import {
   LinkRadialLine
 } from "@visx/shape";
 
-const { Option } = Select;
 
-const controlStyles = { fontSize: 18 };
+const controlStyles = { fontSize: 24  };
+const controlStyles2 = { fontSize: 20, width: 200 };
 export type Props = {
   layout: string;
   orientation: string;
@@ -48,14 +56,16 @@ function LinkControls({
   setLinkType,
   setStepPercent
 }: Props) {
-  function handleChangeLayout(value: string) {
+
+  function handleChangeLayout(value: any) {
     setLayout(value);
   }
+
   function LayoutSelect(): any {
     return (
       <Select
         defaultValue={layout}
-        style={{ width: 120 }}
+        style={controlStyles2}
         onChange={handleChangeLayout}
       >
         <Option value="polar">Polar</Option>
@@ -67,11 +77,12 @@ function LinkControls({
   function handleChangeOrientation(value: string) {
     setOrientation(value);
   }
+ //set
   function OrientationSelect(): any {
     return (
       <Select
         defaultValue={orientation}
-        style={{ width: 120 }}
+        style={controlStyles2 }
         onChange={handleChangeOrientation}
       >
         <Option value="horizontal">Horizontal</Option>
@@ -87,7 +98,7 @@ function LinkControls({
     return (
       <Select
         defaultValue={linkType}
-        style={{ width: 120 }}
+        style={controlStyles2 }
         onChange={handleChangeLinkType}
       >
         <Option value="diagonal">Diagonal</Option>
@@ -99,19 +110,19 @@ function LinkControls({
   }
   return (
     <div>
-      {/* <div style={controlStyles}></div> */}
+      {/* <div width={totalWidth+200}></div> */}
       <label>layout: </label>&nbsp;
       <LayoutSelect />
       &nbsp;&nbsp;
-      <label>orientation: </label>&nbsp;
+      <label>Orientation: </label>&nbsp;
       <OrientationSelect />
       &nbsp;&nbsp;
-      <label>link: </label>&nbsp;
+      <label>Link: </label>&nbsp;
       <LinkTypeSelect />
       {linkType === "step" && layout !== "polar" && (
         <>
           &nbsp;&nbsp;
-          <label>step:</label>&nbsp;
+          {/* <label>step:</label>&nbsp;
           <input
             onClick={(e) => e.stopPropagation()}
             type="range"
@@ -121,7 +132,7 @@ function LinkControls({
             onChange={(e) => setStepPercent(Number(e.target.value))}
             value={stepPercent}
             disabled={linkType !== "step" || layout === "polar"}
-          />
+          /> */}
         </>
       )}
       <br />
@@ -142,12 +153,17 @@ function getLinkComponent({
 }): React.ComponentType<any> {
   let LinkComponent: React.ComponentType<any>;
 
+  function removeChildren (node:any) {
+    node.data.isExpanded = !node.data.isExpanded;
+    console.log(node);
+    forceUpdate();
+  }
   if (layout === "polar") {
-    if (linkType === "step") {
+    if (linkType === "line") {
       LinkComponent = LinkRadialStep;
     } else if (linkType === "curve") {
       LinkComponent = LinkRadialCurve;
-    } else if (linkType === "line") {
+    } else if (linkType === "step") {
       LinkComponent = LinkRadialLine;
     } else {
       LinkComponent = LinkRadial;
@@ -175,19 +191,21 @@ function getLinkComponent({
 }
 
 // margin from chart to the sides 
-const defaultMargin = { top: 110, left: 110, right: 110, bottom: 110 };
+const defaultMargin = { top: 30, left: 110, right: 110, bottom: 20 };
 // link props type
 export type LinkTypesProps = {
   width: number;
   height: number;
   margin?: { top: number; right: number; bottom: number; left: number };
 };
+
 // renders the graph
 function DependencyGraph({
   width: totalWidth,
   height: totalHeight,
   margin = defaultMargin
 }: LinkTypesProps) {
+  const { dependencyGraph, setDependencyGraph } = useContext(dynamicContext)
   // set default mode
   const [layout, setLayout] = useState<string>("polar");
   const [orientation, setOrientation] = useState<string>("horizontal");
@@ -204,18 +222,23 @@ function DependencyGraph({
 // sets chart point origin
   if (layout === "polar") {
     // modifies margin for "polar" layout
-    margin = { top: 250, left: 110, right: 110, bottom: 110 }
+    margin = { top: 390, left: 110, right: 110, bottom: 200 }
     origin = {
       x: innerWidth / 2,
-      y: innerHeight / 4
+      y: (innerHeight / 4)-200
     };
     sizeWidth = 2 * Math.PI;
     // can set how spread out chart is here
-    sizeHeight = Math.min(innerWidth, innerHeight) / 1.75;
+    sizeHeight = Math.min(innerWidth, innerHeight) / 2;
   } else {
     origin = { x: 0, y: 0 };
     if (orientation === "vertical") {
-      sizeWidth = innerWidth;
+      margin = {top:0, left:100, right:500, bottom: 0}
+      origin = {
+        x: 0,
+        y: 30
+      };
+      sizeWidth = innerWidth+80;
       sizeHeight = innerHeight;
     } else {
       sizeWidth = innerHeight;
@@ -223,11 +246,20 @@ function DependencyGraph({
     }
   }
 
+// can add a feature to remove the children nodes instead of orientation change in a future version
+  // function removeChildren (node:any) {
+  //     node.data.isExpanded = !node.data.isExpanded;
+  //     console.log(node);
+  //     forceUpdate();
+  //   }
+
+// console.log('data from dep graph context in graph', dependencyGraph)
+// console.log('current data in graph', treeData)
   const LinkComponent = getLinkComponent({ layout, linkType, orientation });
 // can modify components here i.e. color, stroke size
   return totalWidth < 10 ? null : (
-    <div>
-      <br />
+    <div style={controlStyles}>
+      {/* <br />
       <LinkControls
         layout={layout}
         orientation={orientation}
@@ -238,17 +270,17 @@ function DependencyGraph({
         setLinkType={setLinkType}
         setStepPercent={setStepPercent}
       />
-      <br/>
-      <svg width={600} height={600}>
+      <br/> */}
+      <svg width={1000} height={700}>
         <LinearGradient id="links-gradient" from="#fd9b93" to="#fe6e9e" />
         // can change rectangle color
         <rect width={totalWidth} height={totalHeight} rx={14} fill="#f5f5f5" />
         <Group top={margin.top} left={margin.left}>
           <Tree
-          // put our data variable in place of treeData
-            root={hierarchy(treeData, (d) => (d.isExpanded ? null : d.children))}
+      /*------- Put our data from context in place of dummy data ('treeData') --------*/
+            root={hierarchy(dependencyGraph, (d) => (d.isExpanded ? null : d.children))}
             size={[sizeWidth, sizeHeight]}
-            separation={(a, b) => (a.parent === b.parent ? .7 : 3) / a.depth}
+            separation={(a, b) => (a.parent === b.parent ? .4 : .4) / a.depth}
           >
             {(tree) => (
               <Group top={origin.y} left={origin.x}>
@@ -277,6 +309,10 @@ function DependencyGraph({
                   } else if (orientation === "vertical") {
                     top = node.y;
                     left = node.x;
+                    // can add a feature to remove the children nodes instead of orientation change in a future version
+                    // removeChildren(node)
+                    console.log('data input for vert', node)
+                    
                   } else {
                     top = node.x;
                     left = node.y;
@@ -298,19 +334,19 @@ function DependencyGraph({
                         <circle
                           r={12}
                           fill="#f5f5f5"
-                          onClick={() => {
-                            node.data.isExpanded = !node.data.isExpanded;
-                            console.log(node);
-                            forceUpdate();
-                          }}
+                          // onClick={() => {
+                          //   node.data.isExpanded = !node.data.isExpanded;
+                          //   console.log(node);
+                          //   forceUpdate();
+                          // }}
                         />
                       )}
                       {node.depth !== 0 && (
                         <rect
                           height={height}
-                          width={node.data.children ? "20%" : "10%"}
+                          width={node.data.children ? "19%" : "8%"}
                           y={-height / 2}
-                          x={node.data.children ? -(width-40) / 2 : -(width-100) / 2}
+                          x={node.data.children ? -(width+30) / 2 : -(width-80) / 2}
                           // fill of individual node boxes
                           fill={changeChildren}
                           // change border here ------------
@@ -319,11 +355,11 @@ function DependencyGraph({
                           strokeDasharray={node.data.children ? "0" : "2,2"}
                           strokeOpacity={node.data.children ? 1 : 0.6}
                           rx={node.data.children ? 0 : 10}
-                          onClick={() => {
-                            node.data.isExpanded = !node.data.isExpanded;
-                            console.log(node);
-                            forceUpdate();
-                          }}
+                          // onClick={() => {
+                          //   node.data.isExpanded = !node.data.isExpanded;
+                          //   console.log(node);
+                          //   forceUpdate();
+                          // }}
                         />
                       )}
                       <text

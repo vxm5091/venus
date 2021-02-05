@@ -1,49 +1,60 @@
 /**
  * @name CardDropDown
- * @desc Child of ChartContainer, Displays drop down on 2nd page
+ * @desc Child of ChartContainer, Displays drop down menu where user can select from available services. 
+ *       Services are gathered from the dynamic context.  
 **/
 
-import React, { useContext } from 'react'
+import React, { useContext, useEffect } from 'react'
 import Select from 'antd/es/select';
 import { historicalContext } from '../contexts/historicalContext';
+import { dynamicContext } from '../contexts/dynamicContext';
+import { globalContext } from '../contexts/globalContext';
+import axios from "axios";
 
-// const options: any[] = [
-//   'curriculum-api.codesmith.io', 'google.com', 'surfline.com'
-// ];
-
-function CardDropDown (props:any): JSX.Element{
+function CardDropDown (): JSX.Element{
   
-  const dropDownOptions: any[] =[];
-  for (let i = 0; i < props.services.length; i++){
-    dropDownOptions.push(
-      <Select.Option value={props.services[i]} key={i}>{props.services[i]}</Select.Option>
+
+  const { setService, setTimeRange, setServiceData, setAggregate, currentRange } = useContext(historicalContext)
+  const { serverAddress } = useContext(globalContext)
+  const { serviceNames } = useContext(dynamicContext)
+  let aggregate: JSX.Element = <Select.Option value={'aggregate'} key={10000}>{'Aggregate'}</Select.Option>
+  
+  
+  const dropDownOptions: any[] =[aggregate];
+ 
+    for (let i = 0; i < serviceNames.length; i++){
+      dropDownOptions.push(
+      <Select.Option value={serviceNames[i]} key={i}>{serviceNames[i]}</Select.Option>
     )
   }
-  const { setService } = useContext(historicalContext)
 
 	function onChange(value:string) {
     console.log(value)
-    // fetch request to route for data.
-    // data is then brought into state and updated. otherwise, create a larger pool for an initial pull
+    axios.get(serverAddress +':3000/getHistorical/' + value)
+    .then(function(response){
+      setServiceData(response.data[currentRange]);
+      setTimeRange(response.data);
+      console.log(response.data[currentRange], 'get aggregate')
+      setAggregate(response.data[currentRange].aggregate);
+    })
+    .catch(function(error){
+      console.log(error,'< error')
+    })
     setService(value)
-    
-    
-    }
+  }
     
 	function onSearch(val:any) {
 		console.log('search:', val);
-	}
-
+  }
+  
   return (
   <Select
-    showSearch
     style={{ width: 300}}
     placeholder="Select a service"
     optionFilterProp="children"
     onChange={onChange}
-    onSearch={onSearch}
     filterOption={(input:any, option:any) =>
-      option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0}> 
+       option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0}> 
     {dropDownOptions}
   </Select>
   )

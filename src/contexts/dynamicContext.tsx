@@ -1,3 +1,7 @@
+/**
+ * @name dynamicContext
+ * @desc Component that broadcasts a live stream of data so its subscribers can listen and apply real-time state changes via Context API
+ */
 import React, { useState } from 'react'; 
 
 type dynamicState = {
@@ -21,7 +25,8 @@ type dynamicState = {
   dependencyGraph: {
     service: string,
     status: string,
-    children: any[]
+    isExpanded?: boolean,
+    children: any[],
   };
   filter: any,
   serviceThresholds: {
@@ -32,13 +37,13 @@ type dynamicState = {
     error_threshold?: number, 
     key?: number
   }[]
-  firstTime: boolean
+  serviceNames: any
   setServices: (input:any[]) => void;
   setAggregate: (input:any) => void;
   setDependencyGraph: (input:any) => void;
   setFilter: (input:any) => void;
   setServiceThresholds: (input:any) => void;
-  setFirstTime: (input:boolean) => void
+  setServiceNames: (input:any) => void
 };
 
 export const liveData: dynamicState = {
@@ -89,13 +94,13 @@ export const liveData: dynamicState = {
       error_threshold: 4 
     }
   ],
-  firstTime: true,
+  serviceNames: [],
   setServices: () => {},
   setAggregate: () => {},
   setDependencyGraph: () => {},
   setFilter:() => {},
   setServiceThresholds: () => {},
-  setFirstTime: () => {}
+  setServiceNames: () => {}
 };
 
 export const dynamicContext = React.createContext<dynamicState>(liveData)
@@ -107,8 +112,7 @@ export const DynamicProvider: React.FC = (props: any) => {
   const [dependencyGraph, setDependencyGraph ] = useState<any>({});
   const [filter, setFilter] = useState<any>({})
   const [serviceThresholds, setServiceThresholds] = useState<any>([])
-  const [firstTime, setFirstTime] = useState<any>(true)
+  const [serviceNames, setServiceNames] = useState<any>([])
 
-return <dynamicContext.Provider value={{services, setServices, aggregate, setAggregate, dependencyGraph, setDependencyGraph, filter, setFilter, serviceThresholds, setServiceThresholds, firstTime, setFirstTime}}>{props.children}</dynamicContext.Provider>
-
+return <dynamicContext.Provider value={{services, setServices, aggregate, setAggregate, dependencyGraph, setDependencyGraph, filter, setFilter, serviceThresholds, setServiceThresholds, serviceNames, setServiceNames}}>{props.children}</dynamicContext.Provider>
 }

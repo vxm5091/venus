@@ -1,9 +1,7 @@
 /**
  * @name Dashboard
- * @desc Right-hand side of the Main Display.  Dashboard that displays services and corresponding data.
- * The parent container for Aggregate Data and Chart Container.
+ * @desc Current Status page that immediately renders when user signs in. Parent container to aggregate stats
  */
-
 
 import { io } from "socket.io-client";
 import React, { useContext, useEffect } from "react";
@@ -16,153 +14,52 @@ import { globalContext } from "../contexts/globalContext"
 import { dynamicContext } from "../contexts/dynamicContext";
 import Title from "antd/es/typography/Title";
 
-// ec2-3-15-29-241.us-east-2.compute.amazonaws.com:8080
+
 function Dashboard(): JSX.Element {
   
-  const { services, setServices, aggregate, setAggregate, filter, setFilter, serviceThresholds, firstTime, setFirstTime } = useContext(dynamicContext);
+  //imported dynamic context services for conditional rendering of real time data. 
+  const { services, setServices, aggregate, setAggregate, filter, setFilter, serviceThresholds, serviceNames, setServiceNames } = useContext(dynamicContext);
   const { serverAddress } = useContext(globalContext)
-
   const dataSource: any = [];
+  const list: string[] = [];
   useEffect(() => {
     setFilter(filter)
-    console.log(serverAddress)
     const socket:any = io(serverAddress + ':8080', {
       transports: ["websocket"],
     });
+    console.log('in console')
     socket.on("connection", () => {
       console.log(socket.id);
+      console.log('connected')
     });
+    console.log('past connection req')
     socket.on("real-time-object", (output: any) => {
-      console.log("new update");
-      console.log(output)
       const newData = JSON.parse(output[0]);
+      
       setAggregate(newData.aggregate);
       setServices(newData.services);
-      console.log(newData.aggregate);
-      console.log(newData.services, 'services');
+      const dependencyGraph = JSON.parse(output[1])
+      console.log('in dashboard with dependency graph context', dependencyGraph)
     });
-    // setServices([
-    //   {
-    //     service: "a",
-    //     load: 1,
-    //     response_time: 1,
-    //     error: 1,
-    //     availability: 1,
-    //     byMethod: {
-    //       GET: {
-    //         service: "a",
-    //         load: 99,
-    //         response_time: 12,
-    //         error: 5,
-    //         availability: 1,
-    //       }
-    //     }
-    //   },
-    //   {
-    //     service: "b",
-    //     load: 0,
-    //     response_time: 1000,
-    //     error: 0,
-    //     availability: 100,
-    //     byMethod: {
-    //       GET: {
-    //         service:"b",
-    //         load: 2,
-    //         response_time: 12,
-    //         error: 5,
-    //         availability: 1,
-    //       }
-    //     }
-    //   },
-    //   {
-    //     service: "c",
-    //     load: 101,
-    //     response_time: 1266,
-    //     error: 5,
-    //     availability: 152,
-    //     byMethod: {
-    //       GET: {
-    //         status: "bad",
-    //         load: "0.6666666865348816 hpm",
-    //         response_time: 12,
-    //         error: 5,
-    //         availability: 1,
-    //       }
-    //     }
-    //   },
-    //   {
-    //     service: "d",
-    //     load: 101,
-    //     response_time: 1266,
-    //     error: 5,
-    //     availability: 152,
-    //     byMethod: {
-    //       GET: {
-    //         status: "bad",
-    //         load: "0.6666666865348816 hpm",
-    //         response_time: 12,
-    //         error: 5,
-    //         availability: 1,
-    //       }
-    //     }
-    //   },
-    //   {
-    //     service: "e",
-    //     load: 101,
-    //     response_time: 1266,
-    //     error: 5,
-    //     availability: 152,
-    //     byMethod: {
-    //       GET: {
-    //         status: "bad",
-    //         load: "0.6666666865348816 hpm",
-    //         response_time: 12,
-    //         error: 5,
-    //         availability: 1,
-    //       }
-    //     }
-    //   },
-    //   {
-    //     service: "f",
-    //     load: 101,
-    //     response_time: 1266,
-    //     error: 5,
-    //     availability: 152,
-    //     byMethod: {
-    //       GET: {
-    //         status: "bad",
-    //         load: "0.6666666865348816 hpm",
-    //         response_time: 12,
-    //         error: 5,
-    //         availability: 1,
-    //       }
-    //     }
-    //   },
-    // ]);
-    // setAggregate({
-    //   error: 40,
-    //   response_time: 1278,
-    //   load: 2,
-    //   availability: 83,
-    //   status: 'good'
-    // })
     return () => socket.disconnect();
     
   }, []);
-
-
+  
   if (serviceThresholds.length > 0){
-
       for (let i = 0; i < services.length; i++){
       let status = 0
       if (filter[services[i].service]){
+        console.log(filter)
+        
         const holder = filter[services[i].service]
         if (serviceThresholds[i].load_threshold < services[i].byMethod[holder].load) ++status
         if (serviceThresholds[i].error_threshold < services[i].byMethod[holder].error) ++status
         if (serviceThresholds[i].response_time_threshold < services[i].byMethod[holder].response_time) ++status
         if (serviceThresholds[i].availability_threshold > services[i].byMethod[holder].availability) ++status
         services[i].byMethod[holder].status = status
-        dataSource.push(services[i].byMethod[holder]);
+        services[i].byMethod[holder].byMethod = Object.keys(services[i].byMethod)
+        console.log(services[i].byMethod[holder])
+        dataSource.push(services[i].byMethod[holder]); 
       } else {
         console.log(serviceThresholds, services[i])
         if (serviceThresholds[i].load_threshold < services[i].load) ++status
@@ -183,6 +80,7 @@ function Dashboard(): JSX.Element {
       }
       services[i].key = i;
       let status = 0;
+      list.push(services[i].service)
       if (filter[services[i].service]){
         const holder = filter[services[i].service]
         if (baseline.load_threshold < services[i].byMethod[holder].load) ++status
@@ -190,6 +88,7 @@ function Dashboard(): JSX.Element {
         if (baseline.response_time_threshold < services[i].byMethod[holder].response_time) ++status
         if (baseline.availability_threshold > services[i].byMethod[holder].availability) ++status
         services[i].byMethod[holder].status = status
+        services[i].byMethod[holder].byMethod = Object.keys(services[i].byMethod)
         dataSource.push(services[i].byMethod[holder]);
       } else {
         if (baseline.load_threshold < services[i].load) ++status
@@ -200,14 +99,18 @@ function Dashboard(): JSX.Element {
         dataSource.push(services[i]);
       }
     }
-  }
- 
+    if (serviceNames.length < list.length)
+      setServiceNames(list)
+    }
+    
   const columns: any = [
     {
       title: "Service",
       dataIndex: "service",
       key: "service",
-      sorter: (a:any, b:any) => a.service.length - b.service.length
+      sorter: {
+        compare: (a:any, b:any) => a.error - b.error,
+      }
     },
     {
       title: "Status",
@@ -232,7 +135,7 @@ function Dashboard(): JSX.Element {
       render: (text:string, record:any,) => (<FormDropDown record={record} />),
     },
     {
-      title: "Availability",
+      title: "Availability (%)",
       dataIndex: "availability",
       key: "availability",
       sorter:{
@@ -241,7 +144,7 @@ function Dashboard(): JSX.Element {
 
     },
     {
-      title: "Response Time",
+      title: "Response Time (ms)",
       dataIndex: "response_time",
       key: "response_time",
       sorter:{
@@ -249,7 +152,7 @@ function Dashboard(): JSX.Element {
       }
     },
     {
-      title: "Load",
+      title: "Load (hpm)",
       dataIndex: "load",
       key: "load",
       sorter:{
@@ -257,7 +160,7 @@ function Dashboard(): JSX.Element {
       }
     },
     {
-      title: "Error",
+      title: "Response Error (%)",
       dataIndex: "error",
       key: "error",
       sorter:{
@@ -274,9 +177,7 @@ function Dashboard(): JSX.Element {
         load={aggregate.load}
         availability={aggregate.availability}
       />
-      <Divider>
-        <Title level={3}>Current Status</Title>
-      </Divider>
+
       <Table
         bordered
         scroll={{y: "67vh"}}
